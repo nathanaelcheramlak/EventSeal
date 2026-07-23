@@ -1,0 +1,25 @@
+{
+  "name": "prom-event",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.13.0",
+  "scripts": {
+    "dev": "pnpm build:packages && pnpm --parallel --filter @prom-event/api --filter @prom-event/web dev",
+    "dev:api": "pnpm build:packages && pnpm --filter @prom-event/api dev",
+    "dev:web": "pnpm --filter @prom-event/shared build && pnpm --filter @prom-event/web dev",
+    "build": "pnpm -r build",
+    "build:packages": "pnpm --filter @prom-event/shared build && pnpm --filter @prom-event/db build",
+    "build:api": "pnpm build:packages && pnpm --filter @prom-event/api build",
+    "build:web": "pnpm --filter @prom-event/shared build && pnpm --filter @prom-event/web build",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present test",
+    "db:generate": "pnpm --filter @prom-event/db generate",
+    "db:migrate": "pnpm --filter @prom-event/db migrate",
+    "create-organizer": "pnpm build:packages && pnpm --filter @prom-event/api create-organizer"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}
+

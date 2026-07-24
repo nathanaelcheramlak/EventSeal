@@ -1,18 +1,39 @@
 import { auditLogs, organizers } from "@prom-event/db";
-import { desc, eq, lt } from "drizzle-orm";
+import { auditLogFiltersSchema } from "@prom-event/shared";
+import { and, desc, eq, lt } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
-import { z } from "zod";
-
-const logsQuerySchema = z.object({
-  limit: z.coerce.number().int().min(1).max(100).default(50),
-  cursor: z.coerce.number().int().positive().optional()
-});
 
 export const auditRoutes: FastifyPluginAsync = async (app) => {
   app.get("/", { preHandler: app.authenticate }, async (request) => {
-    const query = logsQuerySchema.parse(request.query);
+    const query = auditLogFiltersSchema.parse(request.query);
+    const conditions: SQL[] = [];
 
-    const whereClause = query.cursor ? lt(auditLogs.id, query.cursor) : undefined;
+    if (query.cursor) {
+      conditions.push(lt(auditLogs.id, query.cursor));
+    }
+
+    if (query.action) {
+      conditions.push(eq(auditLogs.action, query.action));
+    }
+
+    if (query.result) {
+      conditions.push(eq(auditLogs.result, query.result));
+    }
+
+    if (query.organizerId) {
+      conditions.push(eq(auditLogs.organizerId, query.organizerId));
+    }
+
+    if (query.organizerUsername) {
+      conditions.push(eq(organizers.username, query.organizerUsername.toLowerCase()));
+    }
+
+    if (query.qrCodeId) {
+      conditions.push(eq(auditLogs.qrCodeId, query.qrCodeId));
+    }
+
+    const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
 
     const rows = await app.db
       .select({
@@ -43,4 +64,3 @@ export const auditRoutes: FastifyPluginAsync = async (app) => {
     };
   });
 };
-

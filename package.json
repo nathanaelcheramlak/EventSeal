@@ -14,12 +14,12 @@
     "build:web": "pnpm --filter @prom-event/shared build && pnpm --filter @prom-event/web build",
     "typecheck": "pnpm -r --if-present typecheck",
     "test": "pnpm -r --if-present test",
+    "db:check": "pnpm --filter @prom-event/db check",
     "db:generate": "pnpm --filter @prom-event/db generate",
     "db:migrate": "pnpm --filter @prom-event/db migrate",
-    "create-organizer": "pnpm build:packages && pnpm --filter @prom-event/api create-organizer"
+    "create-user": "pnpm build:packages && pnpm --filter @prom-event/api create-organizer"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
   }
 }
-

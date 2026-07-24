@@ -214,7 +214,7 @@ export const qrRoutes: FastifyPluginAsync = async (app) => {
           throw error;
         }
 
-        await writeAuditLog(
+        void writeAuditLog(
           app.db,
           {
             organizerId,
@@ -230,7 +230,7 @@ export const qrRoutes: FastifyPluginAsync = async (app) => {
       }
 
       if (payload.exp <= Math.floor(Date.now() / 1000)) {
-        await writeAuditLog(
+        void writeAuditLog(
           app.db,
           {
             organizerId,
@@ -253,7 +253,7 @@ export const qrRoutes: FastifyPluginAsync = async (app) => {
         .limit(1);
 
       if (!qrCode) {
-        await writeAuditLog(
+        void writeAuditLog(
           app.db,
           {
             organizerId,
@@ -270,7 +270,7 @@ export const qrRoutes: FastifyPluginAsync = async (app) => {
       }
 
       if (qrCode.expiresAt.getTime() <= Date.now()) {
-        await writeAuditLog(
+        void writeAuditLog(
           app.db,
           {
             organizerId,
@@ -292,7 +292,7 @@ export const qrRoutes: FastifyPluginAsync = async (app) => {
             ? qrCode.status
             : "INACTIVE";
 
-        await writeAuditLog(
+        void writeAuditLog(
           app.db,
           {
             organizerId,
@@ -308,7 +308,7 @@ export const qrRoutes: FastifyPluginAsync = async (app) => {
         return invalid(reason);
       }
 
-      await writeAuditLog(
+      void writeAuditLog(
         app.db,
         {
           organizerId,

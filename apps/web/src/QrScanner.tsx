@@ -1,20 +1,34 @@
 import { BrowserQRCodeReader, type IScannerControls } from "@zxing/browser";
 import { useEffect, useRef, useState } from "react";
 
-type ScannerState = "idle" | "starting" | "scanning" | "found" | "error";
+type ScannerState = "idle" | "starting" | "scanning" | "error";
 
 type QrScannerProps = {
   disabled?: boolean;
   onScan: (token: string) => void;
 };
 
+const SCAN_ATTEMPT_DELAY_MS = 75;
+const SCAN_SUCCESS_DELAY_MS = 75;
+const DUPLICATE_SCAN_COOLDOWN_MS = 700;
+
 export function QrScanner({ disabled = false, onScan }: QrScannerProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
-  const hasResultRef = useRef(false);
+  const disabledRef = useRef(disabled);
+  const lastScannedTextRef = useRef("");
   const noResultTimerRef = useRef<number | null>(null);
+  const scanCooldownTimerRef = useRef<number | null>(null);
   const [scannerState, setScannerState] = useState<ScannerState>("idle");
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    disabledRef.current = disabled;
+
+    if (!disabled && controlsRef.current && scannerState === "scanning") {
+      setMessage("Camera active. Ready for next guest.");
+    }
+  }, [disabled, scannerState]);
 
   useEffect(() => {
     return () => {
@@ -47,15 +61,16 @@ export function QrScanner({ disabled = false, onScan }: QrScannerProps) {
       return;
     }
 
-    hasResultRef.current = false;
+    lastScannedTextRef.current = "";
     clearNoResultTimer();
+    clearScanCooldownTimer();
     setScannerState("starting");
     setMessage("Requesting camera...");
 
     try {
       const reader = new BrowserQRCodeReader(undefined, {
-        delayBetweenScanAttempts: 150,
-        delayBetweenScanSuccess: 500
+        delayBetweenScanAttempts: SCAN_ATTEMPT_DELAY_MS,
+        delayBetweenScanSuccess: SCAN_SUCCESS_DELAY_MS
       });
 
       const controls = await reader.decodeFromConstraints(
@@ -67,29 +82,37 @@ export function QrScanner({ disabled = false, onScan }: QrScannerProps) {
           }
         },
         video,
-        (result, _error, controlsFromCallback) => {
+        (result) => {
           const text = result?.getText().trim();
 
-          if (!text || hasResultRef.current) {
+          if (!text || disabledRef.current || lastScannedTextRef.current === text) {
             return;
           }
 
-          hasResultRef.current = true;
+          lastScannedTextRef.current = text;
           clearNoResultTimer();
-          controlsFromCallback.stop();
-          BrowserQRCodeReader.releaseAllStreams();
-          controlsRef.current = null;
-          setScannerState("found");
-          setMessage("QR code detected.");
+          clearScanCooldownTimer();
+          setScannerState("scanning");
+          setMessage("QR detected. Verifying...");
           onScan(text);
+
+          scanCooldownTimerRef.current = window.setTimeout(() => {
+            if (lastScannedTextRef.current === text) {
+              lastScannedTextRef.current = "";
+            }
+
+            if (controlsRef.current && !disabledRef.current) {
+              setMessage("Camera active. Ready for next guest.");
+            }
+          }, DUPLICATE_SCAN_COOLDOWN_MS);
         }
       );
 
       controlsRef.current = controls;
       setScannerState("scanning");
-      setMessage("Camera active.");
+      setMessage("Camera active. Ready for next guest.");
       noResultTimerRef.current = window.setTimeout(() => {
-        if (!hasResultRef.current) {
+        if (controlsRef.current) {
           setMessage("No QR code detected yet.");
         }
       }, 8000);
@@ -104,6 +127,8 @@ export function QrScanner({ disabled = false, onScan }: QrScannerProps) {
 
   function stopScanner() {
     clearNoResultTimer();
+    clearScanCooldownTimer();
+    lastScannedTextRef.current = "";
     controlsRef.current?.stop();
     controlsRef.current = null;
     BrowserQRCodeReader.releaseAllStreams();
@@ -121,8 +146,15 @@ export function QrScanner({ disabled = false, onScan }: QrScannerProps) {
     }
   }
 
+  function clearScanCooldownTimer() {
+    if (scanCooldownTimerRef.current !== null) {
+      window.clearTimeout(scanCooldownTimerRef.current);
+      scanCooldownTimerRef.current = null;
+    }
+  }
+
   const isActive = scannerState === "starting" || scannerState === "scanning";
-  const scannerLabel = scannerState === "found" ? "Detected" : isActive ? "Scanning" : "Ready";
+  const scannerLabel = disabled && isActive ? "Verifying" : isActive ? "Scanning" : "Ready";
 
   return (
     <div className={`scanner ${scannerState}`}>

@@ -101,13 +101,19 @@ export async function getAuditLogs(token: string, filters: GetAuditLogsOptions =
 }
 
 async function request<T>(path: string, init: RequestInit, token?: string): Promise<T> {
+  const headers = new Headers(init.headers);
+
+  if (init.body && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...init.headers
-    }
+    headers
   });
 
   const payload = await response.json().catch(() => ({}));

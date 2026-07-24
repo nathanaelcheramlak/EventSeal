@@ -2,22 +2,34 @@ import cors from "@fastify/cors";
 import helmet from "@fastify/helmet";
 import jwt from "@fastify/jwt";
 import rateLimit from "@fastify/rate-limit";
-import { createDb } from "@prom-event/db";
+import { createDb, type DbClient } from "@prom-event/db";
 import Fastify from "fastify";
 import { ZodError } from "zod";
 import { loadEnv } from "./config/env.js";
+import type { Env } from "./config/env.js";
 import { authRoutes } from "./modules/auth/auth.routes.js";
 import { auditRoutes } from "./modules/audit/audit.routes.js";
 import { healthRoutes } from "./modules/health/health.routes.js";
 import { qrRoutes } from "./modules/qr/qr.routes.js";
 import { HttpError } from "./utils/http-error.js";
 
-export async function buildApp() {
-  const config = loadEnv();
-  const dbClient = createDb(config.DATABASE_URL);
+type BuildAppOptions = {
+  config?: Env;
+  dbClient?: {
+    db: DbClient;
+    pool: {
+      end: () => Promise<void>;
+    };
+  };
+  logger?: boolean;
+};
+
+export async function buildApp(options: BuildAppOptions = {}) {
+  const config = options.config ?? loadEnv();
+  const dbClient = options.dbClient ?? createDb(config.DATABASE_URL);
 
   const app = Fastify({
-    logger: true
+    logger: options.logger ?? true
   });
 
   app.decorate("config", config);
@@ -26,7 +38,7 @@ export async function buildApp() {
 
   await app.register(helmet);
   await app.register(cors, {
-    origin: config.WEB_ORIGIN,
+    origin: config.WEB_ORIGINS,
     credentials: false
   });
   await app.register(rateLimit, {
@@ -80,4 +92,3 @@ export async function buildApp() {
 
   return app;
 }
-

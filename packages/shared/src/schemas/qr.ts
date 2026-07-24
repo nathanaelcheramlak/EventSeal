@@ -14,6 +14,30 @@ export const createQrResponseSchema = z.object({
   qrImage: z.string().startsWith("data:image/png;base64,")
 });
 
+export const qrRecordSummarySchema = z.object({
+  id: z.string().uuid(),
+  name: z.string(),
+  phone: z.string().nullable(),
+  status: qrStatusSchema,
+  createdBy: z.string().uuid(),
+  createdByUsername: z.string().nullable(),
+  createdAt: z.string(),
+  expiresAt: z.string()
+});
+
+export const listQrRecordsResponseSchema = z.object({
+  records: z.array(qrRecordSummarySchema),
+  nextCursor: z.string().nullable()
+});
+
+export const qrRecordDetailResponseSchema = z.object({
+  record: qrRecordSummarySchema
+});
+
+export const revokeQrResponseSchema = z.object({
+  record: qrRecordSummarySchema
+});
+
 export const verifyQrRequestSchema = z.object({
   token: z.string().trim().min(1)
 });
@@ -54,8 +78,11 @@ export const qrTokenPayloadSchema = z.object({
 export type QrStatus = z.infer<typeof qrStatusSchema>;
 export type CreateQrRequest = z.infer<typeof createQrRequestSchema>;
 export type CreateQrResponse = z.infer<typeof createQrResponseSchema>;
+export type QrRecordSummary = z.infer<typeof qrRecordSummarySchema>;
+export type ListQrRecordsResponse = z.infer<typeof listQrRecordsResponseSchema>;
+export type QrRecordDetailResponse = z.infer<typeof qrRecordDetailResponseSchema>;
+export type RevokeQrResponse = z.infer<typeof revokeQrResponseSchema>;
 export type VerifyQrRequest = z.infer<typeof verifyQrRequestSchema>;
 export type VerifyQrResponse = z.infer<typeof verifyQrResponseSchema>;
 export type VerifyQrFailureReason = z.infer<typeof verifyQrFailureReasonSchema>;
 export type QrTokenPayload = z.infer<typeof qrTokenPayloadSchema>;
-

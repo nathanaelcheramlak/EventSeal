@@ -1,20 +1,16 @@
-import { organizers } from "@prom-event/db";
 import { loginRequestSchema } from "@prom-event/shared";
 import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { writeAuditLog } from "../audit/audit.service.js";
 import { HttpError } from "../../utils/http-error.js";
+import { findOrganizerByUsername, normalizeUsername } from "./auth.service.js";
 
 export const authRoutes: FastifyPluginAsync = async (app) => {
-  app.post("/login", async (request) => {
+  app.post("/login", { config: { rateLimit: { max: 10, timeWindow: "1 minute" } } }, async (request) => {
     const body = loginRequestSchema.parse(request.body);
+    const username = normalizeUsername(body.username);
 
-    const [organizer] = await app.db
-      .select()
-      .from(organizers)
-      .where(eq(organizers.username, body.username))
-      .limit(1);
+    const organizer = await findOrganizerByUsername(app.db, username);
 
     const passwordMatches = organizer
       ? await bcrypt.compare(body.password, organizer.passwordHash)
@@ -27,7 +23,7 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
           organizerId: organizer?.id ?? null,
           action: "LOGIN_FAILED",
           result: "FAILURE",
-          metadata: { username: body.username }
+          metadata: { username }
         },
         request.log
       );
@@ -58,4 +54,3 @@ export const authRoutes: FastifyPluginAsync = async (app) => {
     return { token };
   });
 };
-

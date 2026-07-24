@@ -2,11 +2,19 @@ import { createDb, organizers } from "@prom-event/db";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 import { loadEnv } from "../src/config/env.js";
+import { normalizeUsername, PASSWORD_HASH_COST } from "../src/modules/auth/auth.service.js";
 
-const [, , username, password] = process.argv;
+const [, , rawUsername, password] = process.argv;
 
-if (!username || !password) {
+if (!rawUsername || !password) {
   console.error('Usage: pnpm create-organizer <username> "<password>"');
+  process.exit(1);
+}
+
+const username = normalizeUsername(rawUsername);
+
+if (!username) {
+  console.error("Username cannot be empty.");
   process.exit(1);
 }
 
@@ -25,7 +33,7 @@ try {
     process.exit(1);
   }
 
-  const passwordHash = await bcrypt.hash(password, 12);
+  const passwordHash = await bcrypt.hash(password, PASSWORD_HASH_COST);
 
   const [created] = await db
     .insert(organizers)
@@ -37,6 +45,11 @@ try {
       id: organizers.id,
       username: organizers.username
     });
+
+  if (!created) {
+    console.error("Failed to create organizer.");
+    process.exit(1);
+  }
 
   console.log(`Created organizer "${created.username}" with id ${created.id}.`);
 } finally {

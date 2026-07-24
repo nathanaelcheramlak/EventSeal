@@ -1,23 +1,40 @@
 create extension if not exists "pgcrypto";
 
-create type qr_status as enum ('ACTIVE', 'USED', 'REVOKED', 'EXPIRED');
-create type audit_action as enum (
-  'LOGIN_SUCCESS',
-  'LOGIN_FAILED',
-  'QR_GENERATED',
-  'QR_VERIFY_SUCCESS',
-  'QR_VERIFY_FAILED'
-);
-create type audit_result as enum ('SUCCESS', 'FAILURE');
+do $$
+begin
+  create type qr_status as enum ('ACTIVE', 'USED', 'REVOKED', 'EXPIRED');
+exception
+  when duplicate_object then null;
+end $$;
 
-create table organizers (
+do $$
+begin
+  create type audit_action as enum (
+    'LOGIN_SUCCESS',
+    'LOGIN_FAILED',
+    'QR_GENERATED',
+    'QR_VERIFY_SUCCESS',
+    'QR_VERIFY_FAILED'
+  );
+exception
+  when duplicate_object then null;
+end $$;
+
+do $$
+begin
+  create type audit_result as enum ('SUCCESS', 'FAILURE');
+exception
+  when duplicate_object then null;
+end $$;
+
+create table if not exists organizers (
   id uuid primary key default gen_random_uuid(),
   username text not null unique,
   password_hash text not null,
   created_at timestamptz not null default now()
 );
 
-create table qr_codes (
+create table if not exists qr_codes (
   id uuid primary key default gen_random_uuid(),
   created_by uuid not null references organizers(id),
   name text not null,
@@ -27,7 +44,7 @@ create table qr_codes (
   expires_at timestamptz not null
 );
 
-create table audit_logs (
+create table if not exists audit_logs (
   id bigserial primary key,
   organizer_id uuid references organizers(id),
   qr_code_id uuid references qr_codes(id),
@@ -37,9 +54,8 @@ create table audit_logs (
   created_at timestamptz not null default now()
 );
 
-create index idx_qr_codes_status on qr_codes(status);
-create index idx_qr_codes_expires_at on qr_codes(expires_at);
-create index idx_audit_logs_created_at on audit_logs(created_at desc);
-create index idx_audit_logs_qr_code_id on audit_logs(qr_code_id);
-create index idx_audit_logs_organizer_id on audit_logs(organizer_id);
-
+create index if not exists idx_qr_codes_status on qr_codes(status);
+create index if not exists idx_qr_codes_expires_at on qr_codes(expires_at);
+create index if not exists idx_audit_logs_created_at on audit_logs(created_at desc);
+create index if not exists idx_audit_logs_qr_code_id on audit_logs(qr_code_id);
+create index if not exists idx_audit_logs_organizer_id on audit_logs(organizer_id);

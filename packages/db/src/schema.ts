@@ -16,6 +16,7 @@ export const auditAction = pgEnum("audit_action", [
   "LOGIN_SUCCESS",
   "LOGIN_FAILED",
   "QR_GENERATED",
+  "QR_REVOKED",
   "QR_VERIFY_SUCCESS",
   "QR_VERIFY_FAILED"
 ]);
@@ -62,7 +63,9 @@ export const auditLogs = pgTable(
   (table) => ({
     createdAtIdx: index("idx_audit_logs_created_at").on(table.createdAt),
     qrCodeIdIdx: index("idx_audit_logs_qr_code_id").on(table.qrCodeId),
-    organizerIdIdx: index("idx_audit_logs_organizer_id").on(table.organizerId)
+    organizerIdIdx: index("idx_audit_logs_organizer_id").on(table.organizerId),
+    actionIdx: index("idx_audit_logs_action").on(table.action),
+    resultIdx: index("idx_audit_logs_result").on(table.result)
   })
 );
 
@@ -96,4 +99,3 @@ export type QrCode = typeof qrCodes.$inferSelect;
 export type NewQrCode = typeof qrCodes.$inferInsert;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type NewAuditLog = typeof auditLogs.$inferInsert;
-

@@ -40,8 +40,8 @@ function datetimeLocalInputValue(date: Date) {
   return date.toISOString().slice(0, 16);
 }
 
-function tomorrowLocalInputValue() {
-  return datetimeLocalInputValue(new Date(Date.now() + MS_PER_DAY));
+function defaultExpirationLocalInputValue() {
+  return datetimeLocalInputValue(new Date(Date.now() + QR_MAX_TTL_DAYS * MS_PER_DAY));
 }
 
 function maxExpirationLocalInputValue() {
@@ -246,8 +246,9 @@ function LoginScreen({ notice, onLogin }: { notice: string; onLogin: (token: str
 function GenerateQr({ token, onApiError }: { token: string; onApiError: (error: unknown, fallback: string) => string }) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
-  const [expiresAt, setExpiresAt] = useState(tomorrowLocalInputValue);
+  const [expiresAt, setExpiresAt] = useState(defaultExpirationLocalInputValue);
   const [result, setResult] = useState<CreateQrResponse | null>(null);
+  const [resultName, setResultName] = useState("");
   const [error, setError] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -258,6 +259,7 @@ function GenerateQr({ token, onApiError }: { token: string; onApiError: (error: 
     setError("");
     setActionMessage("");
     setResult(null);
+    setResultName("");
 
     const parsedExpiresAt = new Date(expiresAt);
     const now = Date.now();
@@ -283,6 +285,7 @@ function GenerateQr({ token, onApiError }: { token: string; onApiError: (error: 
       const isoExpiresAt = parsedExpiresAt.toISOString();
       const response = await createQr({ name, phone: phone || undefined, expiresAt: isoExpiresAt }, token);
       setResult(response);
+      setResultName(name.trim());
     } catch (err) {
       setError(onApiError(err, "QR generation failed"));
     } finally {
@@ -310,7 +313,7 @@ function GenerateQr({ token, onApiError }: { token: string; onApiError: (error: 
 
     const link = document.createElement("a");
     link.href = result.qrImage;
-    link.download = `qr-${result.qrId}.png`;
+    link.download = `${safeDownloadName(resultName || result.qrId)}.png`;
     link.click();
     setActionMessage("QR image download started.");
   }
@@ -874,4 +877,15 @@ function formatConstant(value: string) {
     .split("_")
     .map((part) => (part === "QR" ? "QR" : `${part.slice(0, 1)}${part.slice(1).toLowerCase()}`))
     .join(" ");
+}
+
+function safeDownloadName(value: string) {
+  const cleaned = value
+    .trim()
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, "")
+    .replace(/\s+/g, "-")
+    .replace(/[.]+$/g, "")
+    .slice(0, 80);
+
+  return cleaned || "qr-code";
 }

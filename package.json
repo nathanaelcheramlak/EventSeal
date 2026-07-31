@@ -6,6 +6,8 @@
   "packageManager": "pnpm@11.13.0",
   "scripts": {
     "dev": "pnpm build:packages && pnpm --parallel --filter @prom-event/api --filter @prom-event/web dev",
+    "start": "pnpm --filter @prom-event/api start",
+    "start:cpanel": "node cpanel-start.cjs",
     "dev:api": "pnpm build:packages && pnpm --filter @prom-event/api dev",
     "dev:web": "pnpm --filter @prom-event/shared build && pnpm --filter @prom-event/web dev",
     "build": "pnpm -r build",

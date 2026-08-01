@@ -161,18 +161,40 @@ export function QrScanner({ disabled = false, onScan }: QrScannerProps) {
       <div className={`scanner-preview ${isActive ? "active" : ""}`}>
         <video ref={videoRef} muted playsInline autoPlay aria-label="QR camera preview" />
         <div className="scanner-frame" aria-hidden="true" />
-        <span className="scanner-state">{scannerLabel}</span>
-        {!isActive && <div className="scanner-placeholder">Camera off</div>}
+        <div className="scanner-laser" aria-hidden="true" />
+        <span className="scanner-state">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <circle cx="12" cy="12" r="3" fill="currentColor" />
+          </svg>
+          {scannerLabel}
+        </span>
+        {!isActive && (
+          <div className="scanner-placeholder">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.5, color: "var(--accent)" }}>
+              <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+              <circle cx="12" cy="13" r="3" />
+            </svg>
+            <span>Camera Standby</span>
+          </div>
+        )}
       </div>
 
       <div className="actions">
         {isActive ? (
           <button className="secondary" type="button" onClick={stopScanner}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="6" y="6" width="12" height="12" rx="2" />
+            </svg>
             Stop camera
           </button>
         ) : (
           <button className="scanner-button" type="button" onClick={startScanner} disabled={disabled}>
-            Start camera
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+              <circle cx="12" cy="13" r="3" />
+            </svg>
+            Start camera scanner
           </button>
         )}
       </div>

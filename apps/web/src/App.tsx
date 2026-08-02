@@ -193,12 +193,7 @@ export default function App() {
         <div>
           <div className="sidebar-header">
             <div className="sidebar-logo">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
-                <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                <path d="M14 14h3v3h-3zM18 18h3v3h-3zM14 18h3v3h-3zM18 14h3v3h-3z" />
-              </svg>
+              <img src="/Infinity.jpg" alt="" />
             </div>
             <div className="sidebar-brand">
               <h2>EventSeal</h2>
@@ -252,7 +247,7 @@ export default function App() {
               {activeTab === "records" && "Pass Records"}
               {activeTab === "logs" && "Audit Logs"}
             </h1>
-            <p>EventSeal Security Console</p>
+            <p>Made by Nathanael C</p>
           </div>
 
           <div className="statbar-metrics">
@@ -322,17 +317,11 @@ function LoginScreen({ notice, onLogin }: { notice: string; onLogin: (token: str
         <div className="login-banner">
           <div>
             <div className="brand-mark large">
-              <svg viewBox="0 0 24 24">
-                <rect x="3" y="3" width="7" height="7" rx="1.5" />
-                <rect x="14" y="3" width="7" height="7" rx="1.5" />
-                <rect x="3" y="14" width="7" height="7" rx="1.5" />
-                <path d="M14 14h3v3h-3zM18 18h3v3h-3zM14 18h3v3h-3zM18 14h3v3h-3z" />
-              </svg>
+              <img src="/Infinity.jpg" alt="" />
             </div>
             <div className="login-banner-content">
-              <p className="eyebrow">Organizer Access</p>
               <h2>EventSeal Console</h2>
-              <p className="muted" style={{ marginTop: 8 }}>Secure event pass management and live check-in telemetry.</p>
+              <p className="muted" style={{ marginTop: 8 }}>Made by Nathanael C</p>
             </div>
           </div>
 
@@ -576,12 +565,7 @@ function GenerateQr({ token, onApiError }: { token: string; onApiError: (error: 
         <div className="badge-card">
           <div className="badge-card-header">
             <div className="badge-logo-mark">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                <rect x="3" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="3" width="7" height="7" rx="1" />
-                <rect x="3" y="14" width="7" height="7" rx="1" />
-                <path d="M14 14h3v3h-3z" />
-              </svg>
+              <img src="/Infinity.jpg" alt="" />
               <span>EVENTSEAL PASS</span>
             </div>
             <span className="panel-tag active">PASS PREVIEW</span>
